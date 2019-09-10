@@ -41,11 +41,11 @@
                 </tr>
                 <tr v-for="tDishData in tDishDatas">
                   <td v-for="n in width">
-                    <div v-if="tDishDatas[0].whenObs[n-1] == 0" id="red">D0</div>
+                    <div v-if="tDishData.whenObs[n-1] == 0" id="red">D0</div>
                     <div
-                      v-else-if="tDishDatas[0].whenObs[n-1] > 0"
+                      v-else-if="tDishData.whenObs[n-1] > 0"
                       id="green"
-                    >D{{tDishDatas[0].whenObs[n-1]}}</div>
+                    >D{{tDishData.whenObs[n-1]}}</div>
                   </td>
                 </tr>
               </tbody>
@@ -75,80 +75,63 @@ export default {
   },
   async created() {
     try {
-      await axios
-        .get("http://localhost:8000")
-        .then(res => {
-          // DBから受け取ったjsonを格納
-          this.tDishDatas = res.data.result.tDish;
-
-          // 差を計算
-          // this.tDishDatas[0].howLongDate = moment(
-          //   this.tDishDatas[0]["end_observation_time"]
-          // ).diff(moment(this.tDishDatas[0]["start_observation_time"]), "days");
-          // this.tDishDatas[0].startMonse = Number(
-          //   moment(this.tDishDatas[0]["start_observation_time"]).format("M")
-          // );
-          // this.tDishDatas[0].startDate = Number(
-          //   moment(this.tDishDatas[0]["start_observation_time"]).format("D")
-          // );
-          // moment(this.tDishDatas[0]["start_observation_time"]).format(
-          //   "YY/MM/DD"
-          // );
-
-          // htmlで使用するデザインを決定する配列を事前に作成
-          for (var n = 0; n < this.tDishDatas.length; n++) {
-            this.tDishDatas[n].whenObs = [];
-            for (var k = 0; k < this.width; k++) {
-              if (
-                moment(this.tDishDatas[n]["end_observation_time"]).format(
-                  "YY/MM/DD"
-                ) ==
-                moment()
-                  .add(k, "days")
-                  .format("YY/MM/DD")
-              ) {
-                // 観察終了日
-                this.tDishDatas[n].whenObs[k] = 0;
-              } else if (
-                moment(this.tDishDatas[n]["end_observation_time"]).diff(
-                  moment().add(k, "days"),
-                  "days"
-                ) > 0 &&
-                moment(moment().add(k, "days")).diff(
-                  moment(this.tDishDatas[n]["start_observation_time"]),
-                  "days"
-                ) >= 0
-              ) {
-                // 観察期間
-                this.tDishDatas[n].whenObs[k] = moment(
-                  this.tDishDatas[n]["end_observation_time"]
-                ).diff(moment().add(k, "days"), "days");
-              } else {
-                // なんでもない日
-                this.tDishDatas[n].whenObs[k] = -1;
-              }
+      // this.tDishDatas = require("../assets/data.json").result.tDish;
+      axios.get("http://localhost:5000/")
+      .then( (response) => {
+        this.tDishDatas = response.data.result.tDish;
+        for (var n = 0; n < this.tDishDatas.length; n++) {
+          this.tDishDatas[n].whenObs = [];
+          for (var k = 0; k < this.width; k++) {
+            if (
+              moment(this.tDishDatas[n]["end_observation_time"]).format(
+                "YY/MM/DD"
+              ) ==
+              moment()
+                .add(k, "days")
+                .format("YY/MM/DD")
+            ) {
+              // 観察終了日
+              this.tDishDatas[n].whenObs[k] = 0;
+            } else if (
+              moment(this.tDishDatas[n]["end_observation_time"]).diff(
+                moment().add(k, "days"),
+                "days"
+              ) > 0 &&
+              moment(moment().add(k, "days")).diff(
+                moment(this.tDishDatas[n]["start_observation_time"]),
+                "days"
+              ) >= 0
+            ) {
+              // 観察期間
+              this.tDishDatas[n].whenObs[k] = moment(
+                this.tDishDatas[n]["end_observation_time"]
+              ).diff(moment().add(k, "days"), "days");
+            } else {
+              // なんでもない日
+              this.tDishDatas[n].whenObs[k] = -1;
             }
           }
+        }
 
-          for (var i = 0; i < this.width; i++) {
-            this.allDay.push(
-              moment()
-                .add(i, "days")
-                .format("M/D")
-            );
-            this.allWeek.push(
-              moment()
-                .add(i, "days")
-                .format("(ddd)")
-            );
-          }
-          // データを取得&処理が完了した段階で描写する
-          this.dispTable = true;
-        })
+        for (var i = 0; i < this.width; i++) {
+          this.allDay.push(
+            moment()
+              .add(i, "days")
+              .format("M/D")
+          );
+          this.allWeek.push(
+            moment()
+              .add(i, "days")
+              .format("(ddd)")
+          );
+        }
+        // データを取得&処理が完了した段階で描写する
+        this.dispTable = true;
+      })
+      .catch( (e) => {
 
-        .catch(e => {
-          console.error(e);
-        });
+      });
+      // htmlで使用するデザインを決定する配列を事前に作成
     } catch (e) {
       console.error(e);
     }
